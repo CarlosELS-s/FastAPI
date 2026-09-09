@@ -25,22 +25,26 @@ def autenticar_usuario(email,senha, session):
 
     return usuario
 
-@auth_router.post("/")
+@auth_router.get("/")
 async def home():
     """
     Endpoint para autenticar um usuário.
     """
     return {"message": "autenticando usuario", "status": False}
 @auth_router.post("/criar_conta")
-async def criar_conta(usuario_schema: UsuarioSchema, session: Session = Depends(pegar_sessao)):
+async def criar_conta(usuario_schema: UsuarioSchema,usuario_atual: Usuario = Depends(verificar_token), session: Session = Depends(pegar_sessao)):
     usuario = session.query(Usuario).filter(Usuario.email == usuario_schema.email).first()
+
+    if usuario_schema.adm:
+        if usuario_atual.admin == False:
+           raise HTTPException(status_code=400,detail="Você não tem altorisação para faser essa verificação ")
     if usuario:
         #ja existe um usuario com esse email
         raise HTTPException(status_code=400, detail="Ja existe um usuario com esse email") 
     else:
         #criar um novo usuario
         senha_criptografada = bcrypt_context.hash(usuario_schema.senha)
-        novo_usuario = Usuario(nome=usuario_schema.nome, email=usuario_schema.email, senha=senha_criptografada, ativo=usuario_schema.ativo)
+        novo_usuario = Usuario(nome=usuario_schema.nome, email=usuario_schema.email, senha=senha_criptografada, ativo=usuario_schema.ativo,admin=usuario_schema.adm)
         session.add(novo_usuario)
         session.commit()
         return {"message": f"usuario criado com sucesso {usuario_schema.email}"}
@@ -79,3 +83,18 @@ async def use_refresh_token(usuario_atual: Usuario = Depends(verificar_token)):
         "access_token": access_token,
         "token_type": "bearer"
         }
+
+@auth_router.delete("/usuarios/{usuario_id}")
+async def deletar_usuario(usuario_id: int, session: Session = Depends(pegar_sessao)):
+    # 1. Busca o usuário pelo ID recebido na URL
+    usuario = session.query(Usuario).filter(Usuario.id == usuario_id).first()
+    
+    # 2. Se o usuário não existir, retorna um erro 404
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # 3. Remove o usuário encontrado e salva a alteração no banco
+    session.delete(usuario)
+    session.commit()
+    
+    return {"message": f"Usuário {usuario.nome} deletado com sucesso"}
