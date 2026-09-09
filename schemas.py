@@ -4,6 +4,8 @@ from typing import Optional
 class UsuarioSchema(BaseModel):
     nome: str
     email: str
+    senha: str
+    adm: Optional[bool] = False
     ativo: Optional[bool] = True
 
     class Config:
