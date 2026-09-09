@@ -2,9 +2,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from models import Usuario
 from dependecies import pegar_sessao
 from main import bcrypt_context
-from schemas import UsuarioSchema
+from schemas import UsuarioSchema,  loginSchema
 from sqlalchemy.orm import Session
+
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
+
+def criar_token(id_usuario):
+    token = f"fnsjkljko{id_usuario}jkljkljkljkljkl"
+    return 
 
 @auth_router.post("/")
 async def home():
@@ -25,3 +30,15 @@ async def criar_conta(usuario_schema: UsuarioSchema, session: Session = Depends(
         session.add(novo_usuario)
         session.commit()
         return {"message": f"usuario criado com sucesso {usuario_schema.email}"}
+
+# login -> email e senha -> tokenJWt (Json web token) aadfffhjdlçkjfkjaoidjl14654safdf
+@auth_router.post("/login")
+async def login(login_schema: loginSchema, session: Session = Depends(pegar_sessao)):
+    usuario = session.query(Usuario).filter(Usuario.email == login_schema.email).first()
+    if not usuario:
+        raise HTTPException(status_code=400, detail="Usuario nao encontrado")
+    else:
+        access_token = criar_token(usuario.id)
+        return {"access_token": access_token,
+                "token_type": "bearer"
+                }
