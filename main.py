@@ -13,6 +13,7 @@ app = FastAPI()
 
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+
 from auth_router import auth_router
 from order_router import order_router
 
