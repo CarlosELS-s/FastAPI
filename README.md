@@ -1,2 +1,2 @@
 # FastAPI
-Criando um projeto com FastAPI
+Criando um site de delivere de pizza com FastAPI
