@@ -85,14 +85,15 @@ async def use_refresh_token(usuario_atual: Usuario = Depends(verificar_token)):
         }
 
 @auth_router.delete("/usuarios/{usuario_id}")
-async def deletar_usuario(usuario_id: int, session: Session = Depends(pegar_sessao)):
+async def deletar_usuario(usuario_id: int, session: Session = Depends(pegar_sessao),usuario_atual: Usuario = Depends(verificar_token)):
     # 1. Busca o usuário pelo ID recebido na URL
     usuario = session.query(Usuario).filter(Usuario.id == usuario_id).first()
     
     # 2. Se o usuário não existir, retorna um erro 404
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
-    
+    if not  usuario.admin:
+        raise HTTPException(status_code=401, detail="Você não pode faser essa alteraçao")
     # 3. Remove o usuário encontrado e salva a alteração no banco
     session.delete(usuario)
     session.commit()
