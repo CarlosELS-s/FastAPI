@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine, Column, Integer, String, Boolean, Float, ForeignKey
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import declarative_base, relationship
 
 #conexão com o banco de dados
 db = create_engine('sqlite:///banco.db')
@@ -40,18 +40,29 @@ class Pedido(base):
     status = Column("status", String, default="pendente")
     usuario = Column("usuario", ForeignKey("usuarios.id"))
     preco = Column("preco", Float)
+    itens = relationship("ItenPedido", cascade="all, delete")
 
 
     def __init__(self,usuario,status = "pendente", preco = 0):
         self.status = status
         self.usuario = usuario
         self.preco = preco
+
+    def calcular_preco(self):
+        #percorre todos os itens do pedido
+        preco_pedido = 0
+        for item in self.itens:
+            preco_item = item.preco_unitario * item.quantidade
+            preco_pedido +=  preco_item
+
+        self.preco = sum(item.preco_unitario * item.quantidade for item in self.itens)
+
 # itensPedidos
 class ItenPedido(base):
     __tablename__ = "itens_Pedidos"
 
     id = Column("id", Integer, primary_key=True,autoincrement=True)
-    Quantidade = Column("quantidade", Integer)
+    quantidade = Column("quantidade", Integer)
     sabor = Column("sabor", String)
     tamanho = Column("tamanho", String)
     preco_unitario = Column("preco_unitario", Float)
@@ -65,3 +76,6 @@ class ItenPedido(base):
         self.pedido = pedido
 
 #executar a criaçao dos metadados do seu banco de dados (criar efetivamente o banco de dados)
+
+# criar a migraçao: alembic  revision --autogenerate -m "alterar repr Pedidos"
+# execultar a migração: alembic upgrade head

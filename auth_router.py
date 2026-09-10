@@ -32,7 +32,7 @@ async def home():
     """
     return {"message": "autenticando usuario", "status": False}
 @auth_router.post("/criar_conta")
-async def criar_conta(usuario_schema: UsuarioSchema,usuario_atual: Usuario = Depends(verificar_token), session: Session = Depends(pegar_sessao)):
+async def criar_conta(usuario_schema: UsuarioSchema, session: Session = Depends(pegar_sessao),usuario_atual: Usuario = Depends(verificar_token)):
     usuario = session.query(Usuario).filter(Usuario.email == usuario_schema.email).first()
 
     if usuario_schema.adm:
