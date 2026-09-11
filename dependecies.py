@@ -25,6 +25,10 @@ def verificar_token(token: str  = Depends(oauth_schema), session: Session = Depe
     # verifica se o token é valido
     # extrair o ID o usuario do token
     usuario = session.query(Usuario).filter(Usuario.id==id_usuario).first()
-    if not usuario:
-        raise HTTPException(status_code=401, detail="Acesso  Invalido")
+    id_usuario_str = dic_inf.get("sub")
+    if not id_usuario_str:
+        raise HTTPException(status_code=401, detail="Acesso Negado: Token inválido")
+    id_usuario = int(id_usuario_str)
+
+
     return usuario
