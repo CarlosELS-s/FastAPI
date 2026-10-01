@@ -1,25 +1,23 @@
 from pydantic import BaseModel
 from typing import Optional, List
 
+
 class UsuarioSchema(BaseModel):
     nome: str
-    email: str
-    senha: str
-    adm: Optional[bool] = False
-    ativo: Optional[bool] = True
-
-    class Config:
-        from_attributes = True
-
-class PedididoSchema(BaseModel):
-    usuario: int
-
-    class Config:
-        from_attributes = True
+    telefone: int
+    email: Optional[str] = None
+    senha: Optional[str] = None
 
 class loginSchema(BaseModel):
-    email: str
-    senha: str
+    nome: Optional[str] = None
+    telefone: Optional[int] = None
+    email: Optional[str] = None
+    senha: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+class PedididoSchema(BaseModel):
+    usuario: int
 
     class Config:
         from_attributes = True
@@ -30,7 +28,7 @@ class ItemPedidoSchema(BaseModel):
     tamanho: str
     preco_unitario: float
 
-    class config:
+    class Config:
         from_attributes = True
 class ResponsePedidoSchema(BaseModel):
     id: int
@@ -38,5 +36,99 @@ class ResponsePedidoSchema(BaseModel):
     preco: float
     itens: List[ItemPedidoSchema]
 
-    class config:
+    class Config:
+        from_attributes = True
+
+class PagamentosSchema(BaseModel):
+    forma_pagamento: str
+
+    class Config:
+        from_attributes = True
+
+class EmailSchema(BaseModel):
+    email: str
+
+    class Config:
+        from_attributes = True
+
+class EnderecoSchema(BaseModel):
+    cep: str
+    rua: str
+    numero: str
+    bairro: str
+    complemento: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+class CodigoEntregaSchema(BaseModel):
+    codigo: str
+    
+    class Config:
+        from_attributes = True
+class EmailSchema(BaseModel):
+    email: str
+    class Config:
+        from_attributes = True
+
+
+class CodigoEmailSchema(BaseModel):
+    codigo: str
+
+class ProdutoTamanhoSchema(BaseModel):
+    tamanho: str
+    preco: float
+
+    class Config:
+        from_attributes = True
+
+
+class ProdutoTamanhoSchema(BaseModel):
+    tamanho: str
+    preco: float
+    estoque: int = 0
+
+    class Config:
+        from_attributes = True 
+
+    class Config:
+        from_attributes = True
+
+
+class ProdutoAtualizarSchema(BaseModel):
+    nome: str
+    categoria: str
+    descricao: Optional[str] = None
+    imagem: Optional[str] = None
+    disponivel: bool = True
+    tamanhos: List[ProdutoTamanhoSchema]
+
+    class Config:
+        from_attributes = True
+class ProdutoTamanhoSchema(BaseModel):
+    tamanho: str
+    preco: float
+    estoque: int = 0
+
+    class Config:
+        from_attributes = True
+class ProdutoTamanhoPrecoSchema(BaseModel):
+    preco: float
+
+    class Config:
+        from_attributes = True
+
+class ProdutoCriarSchema(BaseModel):
+    nome: str
+    categoria: str
+    descricao: Optional[str] = None
+    imagem: Optional[str] = None
+    disponivel: bool = True
+    tamanhos: List[ProdutoTamanhoSchema]
+
+    class Config:
+        from_attributes = True
+class ProdutoTamanhoEstoqueSchema(BaseModel):
+    estoque: int
+
+    class Config:
         from_attributes = True
