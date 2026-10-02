@@ -9,7 +9,7 @@ base = declarative_base()
 
 #criar as tabelas do banco de dados
 
-# usuario
+# usuario'
 class Usuario(base):
     __tablename__ = "usuarios"
 
@@ -52,16 +52,6 @@ class Usuario(base):
     telefone_verificado = Column(
     Boolean,
     default=False
-    )
-
-    codigo_verificacao_telefone = Column(
-        String,
-        nullable=True
-    )
-
-    codigo_verificacao_telefone_expira = Column(
-        DateTime,
-        nullable=True
     )
     email_verificado = Column(Boolean, default=False)
     codigo_verificacao_email = Column(String, nullable=True)
