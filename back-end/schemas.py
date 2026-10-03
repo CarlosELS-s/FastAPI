@@ -7,7 +7,12 @@ class UsuarioSchema(BaseModel):
     telefone: int
     email: Optional[str] = None
     senha: Optional[str] = None
+    adm: Optional[bool] = False
+    ativo: Optional[bool] = True
 
+class CodigoTelefoneSchema(BaseModel):
+    codigo: str
+    
 class loginSchema(BaseModel):
     nome: Optional[str] = None
     telefone: Optional[int] = None

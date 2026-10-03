@@ -59,6 +59,7 @@ export type Pedido = {
   itens: ItemPedido[];
 };
 
+
 /* =========================
    TOKEN
 ========================= */
@@ -213,6 +214,24 @@ alterarStatusUsuario: (
         auth: false,
       }
     ),
+
+verificarTelefone: (
+  id: number,
+  codigo: string
+) =>
+  request<any>(
+    `/auth/verificar-telefone/${id}`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        codigo,
+      }),
+    }
+  ),
+reenviarCodigoTelefone: (id: number) =>
+  request<any>(`/auth/reenviar-codigo-telefone/${id}`, {
+    method: "POST",
+  }),
 
   refresh: () =>
     request<any>(

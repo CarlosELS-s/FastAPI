@@ -11,6 +11,16 @@ import {
   Usuario,
 } from "../lib/api";
 
+type CadastroResponse = {
+  message?: string;
+  id?: number;
+  nome?: string;
+  email?: string | null;
+  telefone?: number;
+  admin?: boolean;
+  telefone_verificado?: boolean;
+};
+
 type AuthContextValue = {
   token: string | null;
   loading: boolean;
@@ -24,7 +34,7 @@ type AuthContextValue = {
 
   signup: (
     data: Usuario
-  ) => Promise<void>;
+  ) => Promise<CadastroResponse>;
 
   logout: () => void;
 };
@@ -138,11 +148,12 @@ export function AuthProvider({
 
   async function signup(
     data: Usuario
-  ) {
+  ): Promise<CadastroResponse> {
     setLoading(true);
 
     try {
-      await api.criarConta(data);
+      const resposta =
+        await api.criarConta(data);
 
       if (data.senha) {
         await login({
@@ -151,6 +162,8 @@ export function AuthProvider({
           senha: data.senha,
         });
       }
+
+      return resposta;
     } finally {
       setLoading(false);
     }

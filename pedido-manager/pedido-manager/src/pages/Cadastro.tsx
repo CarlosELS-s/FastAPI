@@ -34,6 +34,13 @@ export default function Cadastro() {
     e.preventDefault();
     setError("");
 
+    const nome = form.nome.trim();
+
+    if (!nome) {
+      setError("Digite seu nome.");
+      return;
+    }
+
     const telefoneNumerico = Number(
       form.telefone.replace(/\D/g, "")
     );
@@ -44,14 +51,29 @@ export default function Cadastro() {
     }
 
     try {
-      await signup({
-        nome: form.nome.trim(),
+      const resposta = await signup({
+        nome,
         telefone: telefoneNumerico,
         adm: false,
         ativo: true,
       });
 
-      nav("/dashboard");
+      const usuarioId =
+        resposta?.id ??
+        resposta?.usuario?.id;
+
+      if (!usuarioId) {
+        throw new Error(
+          "A API não retornou o ID do usuário."
+        );
+      }
+
+      nav("/verificar-telefone", {
+        state: {
+          usuarioId,
+          telefone: telefoneNumerico,
+        },
+      });
     } catch (err: any) {
       setError(
         err?.message ||
@@ -66,7 +88,7 @@ export default function Cadastro() {
         <Logo />
 
         <div className="card mt-8 p-6 md:p-8">
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-2xl font-bold text-slate-900">
             Criar sua conta
           </h1>
 
@@ -84,22 +106,19 @@ export default function Cadastro() {
             onSubmit={submit}
             className="mt-6 space-y-4"
           >
-            {/* NOME */}
             <label className="block">
-              <span className="mb-1.5 block text-sm font-medium">
+              <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Nome
               </span>
 
               <div className="relative">
                 <UserRound
-                  className="absolute left-3.5 top-3.5 text-slate-400"
-                  size={17}
+                  size={18}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                 />
 
                 <input
-                  className="input pl-10"
                   type="text"
-                  required
                   value={form.nome}
                   onChange={(e) =>
                     handleChange(
@@ -107,55 +126,60 @@ export default function Cadastro() {
                       e.target.value
                     )
                   }
-                  placeholder="Seu nome"
+                  placeholder="Digite seu nome"
+                  className="input w-full pl-11"
+                  required
                 />
               </div>
             </label>
 
-            {/* TELEFONE */}
             <label className="block">
-              <span className="mb-1.5 block text-sm font-medium">
+              <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Telefone
               </span>
 
               <div className="relative">
                 <Phone
-                  className="absolute left-3.5 top-3.5 text-slate-400"
-                  size={17}
+                  size={18}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                 />
 
                 <input
-                  className="input pl-10"
                   type="tel"
                   inputMode="numeric"
-                  required
                   value={form.telefone}
                   onChange={(e) =>
                     handleChange(
                       "telefone",
                       e.target.value
+                        .replace(/\D/g, "")
+                        .slice(0, 11)
                     )
                   }
-                  placeholder="(00) 00000-0000"
+                  placeholder="Digite seu telefone"
+                  className="input w-full pl-11"
+                  required
                 />
               </div>
             </label>
 
-            {/* BOTÃO */}
             <button
               type="submit"
               disabled={loading}
               className="btn-primary w-full"
             >
               {loading ? (
-                <Loader2
-                  className="animate-spin"
-                  size={18}
-                />
+                <>
+                  <Loader2
+                    size={18}
+                    className="animate-spin"
+                  />
+                  Criando conta...
+                </>
               ) : (
                 <>
                   Criar conta
-                  <ArrowRight size={17} />
+                  <ArrowRight size={18} />
                 </>
               )}
             </button>

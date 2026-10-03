@@ -11,6 +11,38 @@ import random
 from classes import Enviar_Email
 
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
+codigos_telefone = {}
+
+def gerar_codigo_telefone(usuario_id: int):
+    codigo = str(random.randint(100000, 999999))
+
+    codigos_telefone[usuario_id] = {
+        "codigo": codigo,
+        "expira": datetime.now() + timedelta(minutes=10)
+    }
+
+    print("=" * 50)
+    print(f"CÓDIGO DE VERIFICAÇÃO DO USUÁRIO {usuario_id}: {codigo}")
+    print("=" * 50)
+
+    return codigo
+
+def validar_codigo_telefone(usuario_id: int, codigo: str):
+    dados = codigos_telefone.get(usuario_id)
+
+    if not dados:
+        return False, "Nenhum código foi solicitado."
+
+    if datetime.now() > dados["expira"]:
+        codigos_telefone.pop(usuario_id, None)
+        return False, "O código expirou."
+
+    if codigo != dados["codigo"]:
+        return False, "Código inválido."
+
+    codigos_telefone.pop(usuario_id, None)
+
+    return True, "Telefone verificado com sucesso."
 
 def criar_token(
     id_usuario,
@@ -117,16 +149,17 @@ async def criar_conta(
     session.add(novo_usuario)
     session.commit()
     session.refresh(novo_usuario)
+    gerar_codigo_telefone(novo_usuario.id)
 
     return {
-        "message": "Usuário criado com sucesso",
+        "message": "Usuário criado com sucesso. Verifique o telefone com o código enviado no terminal.",
         "id": novo_usuario.id,
         "nome": novo_usuario.nome,
         "email": novo_usuario.email,
         "telefone": novo_usuario.telefone,
         "admin": novo_usuario.admin,
+        "telefone_verificado": novo_usuario.telefone_verificado,
     }
-
 
 # login -> email e senha -> tokenJWt (Json web token) aadfffhjdlçkjfkjaoidjl14654safdf
 @auth_router.post("/login")
@@ -225,7 +258,11 @@ async def login(
                 status_code=400,
                 detail="Senha do administrador incorreta."
             )
-
+    if not usuario.telefone_verificado:
+        raise HTTPException(
+            status_code=400,
+            detail="Seu telefone ainda não foi verificado."
+        )
     # ==========================================
     # TOKEN
     # ==========================================
@@ -503,4 +540,65 @@ async def informacao_usuario_admin(usuario_id: int, session: Session = Depends(p
         "ativo": usuario.ativo,
         "admin": usuario.admin,
         "email_verificado": usuario.email_verificado
+    }
+
+@auth_router.post("/verificar-telefone/{usuario_id}")
+async def verificar_telefone(
+    usuario_id: int,
+    codigo_schema: CodigoTelefoneSchema,
+    session: Session = Depends(pegar_sessao),
+):
+    usuario = (
+        session.query(Usuario)
+        .filter(Usuario.id == usuario_id)
+        .first()
+    )
+
+    if not usuario:
+        raise HTTPException(
+            status_code=404,
+            detail="Usuário não encontrado."
+        )
+
+    valido, mensagem = validar_codigo_telefone(
+        usuario_id,
+        codigo_schema.codigo
+    )
+
+    if not valido:
+        raise HTTPException(
+            status_code=400,
+            detail=mensagem
+        )
+
+    usuario.telefone_verificado = True
+
+    session.commit()
+    session.refresh(usuario)
+
+    return {
+        "message": "Telefone verificado com sucesso.",
+        "telefone_verificado": True,
+    }
+@auth_router.post("/reenviar-codigo-telefone/{usuario_id}")
+async def reenviar_codigo_telefone(
+    usuario_id: int,
+    session: Session = Depends(pegar_sessao),
+):
+    usuario = (
+        session.query(Usuario)
+        .filter(Usuario.id == usuario_id)
+        .first()
+    )
+
+    if not usuario:
+        raise HTTPException(
+            status_code=404,
+            detail="Usuário não encontrado."
+        )
+
+    gerar_codigo_telefone(usuario.id)
+
+    return {
+        "message": "Novo código gerado."
     }

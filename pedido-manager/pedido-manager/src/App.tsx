@@ -29,6 +29,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminProdutos from "./pages/AdminProdutos";
 import AdminUsuarios from "./pages/AdminUsuarios";
 import AdminUsuarioDetalhe from "./pages/AdminUsuarioDetalhe";
+import VerificarTelefone from "./pages/VerificarTelefone";
 
 export default function App() {
   return (
@@ -38,15 +39,18 @@ export default function App() {
           {/* Páginas públicas */}
           <Route path="/login" element={<Login />} />
           <Route path="/cadastro" element={<Cadastro />} />
+          <Route
+              path="/verificar-telefone"
+              element={<VerificarTelefone />}
+            />
+                          <Route
+                path="/"
+                element={<Navigate to="/dashboard" replace />}
+              />
 
           {/* Páginas protegidas */}
           <Route element={<ProtectedRoute />}>
             <Route element={<Layout />}>
-              {/* Dashboard */}
-              <Route
-                path="/"
-                element={<Navigate to="/dashboard" replace />}
-              />
               <Route
               path="/admin/usuarios"
               element={<AdminUsuarios />}
