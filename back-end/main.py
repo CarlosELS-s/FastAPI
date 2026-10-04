@@ -31,7 +31,7 @@ bcrypt_context = CryptContext(
 
 frontend_url = os.getenv(
     "FRONTEND_URL",
-    "http://localhost:5173"
+    "https://pedido-manager-three.vercel.app"
 )
 
 
@@ -39,6 +39,7 @@ origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://192.168.100.2:5173",
+    "https://pedido-manager-three.vercel.app",
 ]
 
 if frontend_url and frontend_url not in origins:
@@ -52,6 +53,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 from auth_router import auth_router
 from order_router import order_router
