@@ -31,7 +31,7 @@ bcrypt_context = CryptContext(
 
 frontend_url = os.getenv(
     "FRONTEND_URL",
-    "https://pedido-manager-three.vercel.app"
+    "https://pedido-manager-a4d151x82-pedido-manager.vercel.app"
 )
 
 
@@ -39,7 +39,7 @@ origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://192.168.100.2:5173",
-    "https://pedido-manager-three.vercel.app",
+    "https://pedidomanager-api.onrender.com",
 ]
 
 if frontend_url and frontend_url not in origins:
