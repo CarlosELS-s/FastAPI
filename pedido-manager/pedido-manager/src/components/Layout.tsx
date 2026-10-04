@@ -10,21 +10,42 @@ import {
   User,
   History,
   Users,
+  Package,
 } from "lucide-react";
-import {
-  NavLink,
-  Outlet,
-  useNavigate,
-} from "react-router-dom";
-import { Package } from "lucide-react";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+
+function obterFuncao() {
+  const token = localStorage.getItem("pedido_token");
+  if (!token) return "";
+
+  try {
+    const parte = token.split(".")[1];
+    if (!parte) return "";
+    const base64 = parte.replace(/-/g, "+").replace(/_/g, "/");
+    const preenchido = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+    const payload = JSON.parse(atob(preenchido));
+    return String(payload?.funcao || "").toLowerCase();
+  } catch {
+    return "";
+  }
+}
+
+const estiloLink = ({ isActive }: { isActive: boolean }) =>
+  [
+    "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition",
+    isActive
+      ? "bg-slate-900 text-white"
+      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+  ].join(" ");
 
 export default function Layout() {
   const navigate = useNavigate();
   const { logout, isAdmin } = useAuth();
-
   const [menuAberto, setMenuAberto] = useState(false);
+
+  const funcao = obterFuncao();
 
   function fecharMenu() {
     setMenuAberto(false);
@@ -35,7 +56,7 @@ export default function Layout() {
     navigate("/login");
   }
 
-  const links = [
+  const linksBase = [
     {
       to: "/dashboard",
       label: "Dashboard",
@@ -53,43 +74,100 @@ export default function Layout() {
     },
   ];
 
-  const adminLinks = [
-    {
-      to: "/admin/dashboard",
-      label: "Dashboard administrativo",
-      icon: ShieldCheck,
-    },
-    {
-      to: "/admin/produtos",
-      label: "Produtos",
-      icon: Package,
-    },
-    {
-      to: "/admin/usuarios",
-      label: "Usuários",
-      icon: Users,
-    },
-    {
-      to: "/admin/pedidos",
-      label: "Todos os pedidos",
-      icon: ShieldCheck,
-    },
-    {
-      to: "/admin/cozinha",
-      label: "Cozinha",
-      icon: CheckCircle2,
-    },
-    {
-      to: "/admin/pedidos-prontos",
-      label: "Pedidos prontos",
-      icon: CheckCircle2,
-    },
-    {
-      to: "/admin/pedidos-em-entrega",
-      label: "Pedidos em entrega",
-      icon: Truck,
-    },
-  ];
+  let linksVisiveis = [...linksBase];
+
+  if (isAdmin) {
+    linksVisiveis = [
+      ...linksBase,
+      {
+        to: "/admin/dashboard",
+        label: "Dashboard administrativo",
+        icon: ShieldCheck,
+      },
+      {
+        to: "/admin/produtos",
+        label: "Produtos",
+        icon: Package,
+      },
+      {
+        to: "/admin/usuarios",
+        label: "Usuários",
+        icon: Users,
+      },
+      {
+        to: "/admin/pedidos",
+        label: "Todos os pedidos",
+        icon: ShieldCheck,
+      },
+      {
+        to: "/admin/cozinha",
+        label: "Cozinha",
+        icon: CheckCircle2,
+      },
+      {
+        to: "/admin/pedidos-prontos",
+        label: "Pedidos prontos",
+        icon: CheckCircle2,
+      },
+      {
+        to: "/admin/pedidos-em-entrega",
+        label: "Pedidos em entrega",
+        icon: Truck,
+      },
+    ];
+  } else if (funcao === "dono") {
+    linksVisiveis = [
+      ...linksBase,
+      {
+        to: "/admin/produtos",
+        label: "Produtos",
+        icon: Package,
+      },
+      {
+        to: "/admin/pedidos",
+        label: "Todos os pedidos",
+        icon: ShieldCheck,
+      },
+      {
+        to: "/admin/cozinha",
+        label: "Cozinha",
+        icon: CheckCircle2,
+      },
+      {
+        to: "/admin/pedidos-prontos",
+        label: "Pedidos prontos",
+        icon: CheckCircle2,
+      },
+      {
+        to: "/admin/pedidos-em-entrega",
+        label: "Pedidos em entrega",
+        icon: Truck,
+      },
+    ];
+  } else if (funcao === "cozinheiro") {
+    linksVisiveis = [
+      ...linksBase,
+      {
+        to: "/admin/cozinha",
+        label: "Cozinha",
+        icon: CheckCircle2,
+      },
+    ];
+  } else if (funcao === "entregador") {
+    linksVisiveis = [
+      ...linksBase,
+      {
+        to: "/admin/pedidos-prontos",
+        label: "Pedidos prontos",
+        icon: CheckCircle2,
+      },
+      {
+        to: "/admin/pedidos-em-entrega",
+        label: "Pedidos em entrega",
+        icon: Truck,
+      },
+    ];
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -134,57 +212,20 @@ export default function Layout() {
           </div>
 
           <nav className="flex-1 space-y-1 p-4">
-            {links.map((link) => {
+            {linksVisiveis.map((link) => {
               const Icon = link.icon;
 
               return (
                 <NavLink
                   key={link.to}
                   to={link.to}
-                  className={({ isActive }) =>
-                    [
-                      "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition",
-                      isActive
-                        ? "bg-slate-900 text-white"
-                        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
-                    ].join(" ")
-                  }
+                  className={estiloLink}
                 >
                   <Icon size={19} />
                   {link.label}
                 </NavLink>
               );
             })}
-
-            {isAdmin && (
-              <>
-                <div className="px-4 pb-2 pt-6 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                  Administração
-                </div>
-
-                {adminLinks.map((link) => {
-                  const Icon = link.icon;
-
-                  return (
-                    <NavLink
-                      key={link.to}
-                      to={link.to}
-                      className={({ isActive }) =>
-                        [
-                          "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition",
-                          isActive
-                            ? "bg-slate-900 text-white"
-                            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
-                        ].join(" ")
-                      }
-                    >
-                      <Icon size={19} />
-                      {link.label}
-                    </NavLink>
-                  );
-                })}
-              </>
-            )}
           </nav>
 
           <div className="border-t border-slate-100 p-4">
@@ -238,7 +279,7 @@ export default function Layout() {
               </div>
 
               <nav className="flex-1 space-y-1 overflow-y-auto p-4">
-                {links.map((link) => {
+                {linksVisiveis.map((link) => {
                   const Icon = link.icon;
 
                   return (
@@ -246,51 +287,13 @@ export default function Layout() {
                       key={link.to}
                       to={link.to}
                       onClick={fecharMenu}
-                      className={({ isActive }) =>
-                        [
-                          "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition",
-                          isActive
-                            ? "bg-slate-900 text-white"
-                            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
-                        ].join(" ")
-                      }
+                      className={estiloLink}
                     >
                       <Icon size={19} />
                       {link.label}
                     </NavLink>
                   );
                 })}
-
-                {isAdmin && (
-                  <>
-                    <div className="px-4 pb-2 pt-6 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                      Administração
-                    </div>
-
-                    {adminLinks.map((link) => {
-                      const Icon = link.icon;
-
-                      return (
-                        <NavLink
-                          key={link.to}
-                          to={link.to}
-                          onClick={fecharMenu}
-                          className={({ isActive }) =>
-                            [
-                              "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition",
-                              isActive
-                                ? "bg-slate-900 text-white"
-                                : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
-                            ].join(" ")
-                          }
-                        >
-                          <Icon size={19} />
-                          {link.label}
-                        </NavLink>
-                      );
-                    })}
-                  </>
-                )}
               </nav>
 
               <div className="border-t border-slate-100 p-4">
@@ -332,10 +335,7 @@ export default function Layout() {
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100">
                 <User size={18} />
               </div>
-
-              <span>
-                Meu perfil
-              </span>
+              <span>Meu perfil</span>
             </button>
           </header>
 

@@ -1,456 +1,331 @@
-import {
-  FormEvent,
-  useState,
-} from "react";
-
-import {
-  Eye,
-  EyeOff,
-  ArrowRight,
-  Loader2,
-  LockKeyhole,
-  Phone,
-  UserRound,
-  Mail,
-} from "lucide-react";
-
-import {
-  Link,
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
-
+import { FormEvent, useState } from "react";
+import { ArrowRight, Eye, EyeOff, LockKeyhole, Mail, Phone, UserRound } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Logo } from "../components/Logo";
 import { useAuth } from "../context/AuthContext";
 
-type ModoLogin =
-  | "telefone"
-  | "email";
+type ModoLogin = "telefone" | "email";
 
 export default function Login() {
-  const { login, loading } =
-    useAuth();
-
+  const { login, loading } = useAuth();
   const nav = useNavigate();
   const location = useLocation();
 
-  const [modo, setModo] =
-    useState<ModoLogin>("telefone");
+  const [modo, setModo] = useState<ModoLogin>("telefone");
+  const [nome, setNome] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [pedirSenha, setPedirSenha] = useState(false);
+  const [error, setError] = useState("");
 
-  const [nome, setNome] =
-    useState("");
-
-  const [telefone, setTelefone] =
-    useState("");
-
-  const [email, setEmail] =
-    useState("");
-
-  const [senha, setSenha] =
-    useState("");
-
-  const [pedirSenha, setPedirSenha] =
-    useState(false);
-
-  const [showSenha, setShowSenha] =
-    useState(false);
-
-  const [error, setError] =
-    useState("");
-
-  function trocarModo(
-    novoModo: ModoLogin
-  ) {
+  function trocarModo(novoModo: ModoLogin) {
     setModo(novoModo);
-
-    setNome("");
-    setTelefone("");
-    setEmail("");
-    setSenha("");
-
-    setPedirSenha(false);
-    setShowSenha(false);
     setError("");
+    setSenha("");
+    setPedirSenha(false);
   }
 
-  async function submit(
-    e: FormEvent
-  ) {
+  async function submit(e: FormEvent) {
     e.preventDefault();
-
     setError("");
 
     try {
       if (modo === "email") {
-        if (!email.trim()) {
-          setError(
-            "Digite seu e-mail."
-          );
+        const emailLimpo = email.trim().toLowerCase();
+
+        if (!emailLimpo) {
+          setError("Digite seu e-mail.");
           return;
         }
 
-        const resultado =
-          await login({
-            email: email
-              .trim()
-              .toLowerCase(),
-            senha: pedirSenha
-              ? senha
-              : undefined,
-          });
+        const resultado = await login({
+          email: emailLimpo,
+          senha: pedirSenha ? senha : undefined
+        });
 
-        if (
-          resultado?.senha_obrigatoria
-        ) {
+        if (resultado?.senha_obrigatoria && !pedirSenha) {
           setPedirSenha(true);
           return;
         }
 
-        nav(
-          (location.state as any)
-            ?.from || "/dashboard"
-        );
+        if (resultado?.verificacao_necessaria) {
+          nav("/verificar-telefone", {
+            state: {
+              usuarioId: resultado.usuario_id,
+              email: resultado.email || emailLimpo,
+              modo: "login-email"
+            }
+          });
+          return;
+        }
+      } else {
+        const telefoneNumerico = Number(telefone.replace(/\D/g, ""));
 
-        return;
-      }
+        if (!nome.trim()) {
+          setError("Digite seu nome.");
+          return;
+        }
 
-      if (!nome.trim()) {
-        setError(
-          "Digite seu nome."
-        );
-        return;
-      }
+        if (!telefoneNumerico) {
+          setError("Digite seu telefone.");
+          return;
+        }
 
-      const telefoneNumerico =
-        Number(
-          telefone.replace(
-            /\D/g,
-            ""
-          )
-        );
-
-      if (!telefoneNumerico) {
-        setError(
-          "Digite seu telefone."
-        );
-        return;
-      }
-
-      const resultado =
-        await login({
+        const resultado = await login({
           nome: nome.trim(),
-          telefone:
-            telefoneNumerico,
-          senha: pedirSenha
-            ? senha
-            : undefined,
+          telefone: telefoneNumerico,
+          senha: pedirSenha ? senha : undefined
         });
 
-      if (
-        resultado?.senha_obrigatoria
-      ) {
-        setPedirSenha(true);
-        return;
+        if (resultado?.senha_obrigatoria && !pedirSenha) {
+          setPedirSenha(true);
+          return;
+        }
+
+        if (resultado?.verificacao_necessaria) {
+          nav("/verificar-telefone", {
+            state: {
+              usuarioId: resultado.usuario_id,
+              telefone: resultado.telefone || telefoneNumerico,
+              modo: "login"
+            }
+          });
+          return;
+        }
       }
 
-      nav(
-        (location.state as any)
-          ?.from || "/dashboard"
-      );
+      nav((location.state as any)?.from || "/dashboard");
     } catch (err: any) {
-      setError(
-        err?.message ||
-          "Não foi possível entrar."
-      );
+      setError(err?.message || "Não foi possível entrar na sua conta.");
     }
   }
 
   return (
-    <div className="grid min-h-screen lg:grid-cols-2">
-      {/* LADO ESQUERDO */}
-      <div className="hidden bg-slate-950 p-12 lg:flex lg:flex-col lg:justify-between">
-        <Logo dark />
+    <div className="min-h-screen bg-slate-50">
+      <div className="grid min-h-screen lg:grid-cols-2">
+        <div className="hidden bg-slate-950 lg:flex">
+          <div className="flex w-full flex-col justify-between p-12 xl:p-16">
+            <Logo />
 
-        <div className="max-w-md text-white">
-          <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-slate-400">
-            Gestão simples
-          </p>
+            <div className="max-w-xl">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
+                Gestão simples
+              </p>
 
-          <h1 className="text-5xl font-bold leading-tight tracking-tight">
-            Todos os seus pedidos em um só lugar.
-          </h1>
+              <h2 className="mt-5 text-5xl font-bold leading-tight text-white">
+                Todos os seus
+                <br />
+                pedidos em um só
+                <br />
+                lugar.
+              </h2>
 
-          <p className="mt-5 text-lg leading-8 text-slate-400">
-            Acompanhe pedidos, itens e status com uma interface rápida e objetiva.
-          </p>
+              <p className="mt-6 max-w-lg text-lg leading-8 text-slate-400">
+                Acompanhe pedidos, itens e status com uma interface rápida e objetiva.
+              </p>
+            </div>
+
+            <p className="text-sm text-slate-500">PedidoManager</p>
+          </div>
         </div>
 
-        <p className="text-sm text-slate-500">
-          PedidoManager
-        </p>
-      </div>
-
-      {/* LADO DIREITO */}
-      <div className="flex items-center justify-center p-6">
-        <div className="w-full max-w-md">
-          {/* LOGO MOBILE */}
-          <div className="mb-8 lg:hidden">
-            <Logo />
-          </div>
-
-          <p className="text-sm font-semibold text-slate-500">
-            Bem-vindo
-          </p>
-
-          <h2 className="mt-1 text-3xl font-bold tracking-tight">
-            Entrar
-          </h2>
-
-          <p className="mt-2 text-sm text-slate-500">
-            Escolha como deseja entrar na sua conta.
-          </p>
-
-          {/* MODO DE LOGIN */}
-          <div className="mt-6 grid grid-cols-2 rounded-xl bg-slate-100 p-1">
-            <button
-              type="button"
-              onClick={() =>
-                trocarModo("telefone")
-              }
-              className={`rounded-lg px-4 py-2.5 text-sm font-semibold transition ${
-                modo === "telefone"
-                  ? "bg-white text-slate-900 shadow-sm"
-                  : "text-slate-500 hover:text-slate-900"
-              }`}
-            >
-              <span className="inline-flex items-center gap-2">
-                <Phone size={16} />
-                Telefone
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() =>
-                trocarModo("email")
-              }
-              className={`rounded-lg px-4 py-2.5 text-sm font-semibold transition ${
-                modo === "email"
-                  ? "bg-white text-slate-900 shadow-sm"
-                  : "text-slate-500 hover:text-slate-900"
-              }`}
-            >
-              <span className="inline-flex items-center gap-2">
-                <Mail size={16} />
-                E-mail
-              </span>
-            </button>
-          </div>
-
-          {/* ERRO */}
-          {error && (
-            <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-              {error}
+        <div className="flex items-center justify-center p-5 sm:p-8">
+          <div className="w-full max-w-md">
+            <div className="mb-8 lg:hidden">
+              <Logo />
             </div>
-          )}
 
-          <form
-            onSubmit={submit}
-            className="mt-7 space-y-4"
-          >
-            {/* ========================= */}
-            {/* LOGIN POR TELEFONE */}
-            {/* ========================= */}
+            <div>
+              <p className="text-sm font-medium text-slate-500">Bem-vindo</p>
 
-            {modo === "telefone" && (
-              <>
-                {/* NOME */}
-                <label className="block">
-                  <span className="mb-1.5 block text-sm font-medium">
-                    Nome
-                  </span>
+              <h1 className="mt-1 text-3xl font-bold text-slate-900">
+                Entrar
+              </h1>
 
-                  <div className="relative">
-                    <UserRound
-                      className="absolute left-3.5 top-3.5 text-slate-400"
-                      size={17}
-                    />
+              <p className="mt-2 text-sm text-slate-500">
+                Escolha como deseja entrar na sua conta.
+              </p>
+            </div>
 
-                    <input
-                      className="input pl-10"
-                      type="text"
-                      required
-                      value={nome}
-                      onChange={(e) =>
-                        setNome(
-                          e.target.value
-                        )
-                      }
-                      placeholder="Seu nome"
-                      disabled={loading}
-                    />
-                  </div>
-                </label>
+            <div className="mt-7 grid grid-cols-2 rounded-xl bg-slate-100 p-1">
+              <button
+                type="button"
+                onClick={() => trocarModo("telefone")}
+                className={[
+                  "flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition",
+                  modo === "telefone"
+                    ? "bg-white text-slate-900 shadow-sm"
+                    : "text-slate-500 hover:text-slate-900"
+                ].join(" ")}
+              >
+                <Phone size={17} />
+                Telefone
+              </button>
 
-                {/* TELEFONE */}
-                <label className="block">
-                  <span className="mb-1.5 block text-sm font-medium">
-                    Telefone
-                  </span>
+              <button
+                type="button"
+                onClick={() => trocarModo("email")}
+                className={[
+                  "flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition",
+                  modo === "email"
+                    ? "bg-white text-slate-900 shadow-sm"
+                    : "text-slate-500 hover:text-slate-900"
+                ].join(" ")}
+              >
+                <Mail size={17} />
+                E-mail
+              </button>
+            </div>
 
-                  <div className="relative">
-                    <Phone
-                      className="absolute left-3.5 top-3.5 text-slate-400"
-                      size={17}
-                    />
-
-                    <input
-                      className="input pl-10"
-                      type="tel"
-                      required
-                      value={telefone}
-                      onChange={(e) =>
-                        setTelefone(
-                          e.target.value
-                        )
-                      }
-                      placeholder="Digite seu telefone"
-                      disabled={loading}
-                    />
-                  </div>
-                </label>
-              </>
+            {error && (
+              <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                {error}
+              </div>
             )}
 
-            {/* ========================= */}
-            {/* LOGIN POR E-MAIL */}
-            {/* ========================= */}
-
-            {modo === "email" && (
-              <label className="block">
-                <span className="mb-1.5 block text-sm font-medium">
-                  E-mail
-                </span>
-
-                <div className="relative">
-                  <Mail
-                    className="absolute left-3.5 top-3.5 text-slate-400"
-                    size={17}
-                  />
-
-                  <input
-                    className="input pl-10"
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) =>
-                      setEmail(
-                        e.target.value
-                      )
-                    }
-                    placeholder="voce@email.com"
-                    disabled={loading}
-                  />
-                </div>
-
-                <p className="mt-2 text-xs text-slate-500">
-                  O e-mail precisa estar verificado.
-                </p>
-              </label>
-            )}
-
-            {/* ========================= */}
-            {/* SENHA ADMIN */}
-            {/* ========================= */}
-
-            {pedirSenha && (
-              <label className="block">
-                <span className="mb-1.5 block text-sm font-medium">
-                  Senha do administrador
-                </span>
-
-                <div className="relative">
-                  <LockKeyhole
-                    className="absolute left-3.5 top-3.5 text-slate-400"
-                    size={17}
-                  />
-
-                  <input
-                    className="input pl-10 pr-10"
-                    type={
-                      showSenha
-                        ? "text"
-                        : "password"
-                    }
-                    required
-                    value={senha}
-                    onChange={(e) =>
-                      setSenha(
-                        e.target.value
-                      )
-                    }
-                    placeholder="Digite a senha"
-                    disabled={loading}
-                  />
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setShowSenha(
-                        !showSenha
-                      )
-                    }
-                    className="absolute right-3 top-2.5 rounded-lg p-1 text-slate-400 transition hover:text-slate-900"
-                  >
-                    {showSenha ? (
-                      <EyeOff size={18} />
-                    ) : (
-                      <Eye size={18} />
-                    )}
-                  </button>
-                </div>
-
-                <p className="mt-2 text-xs text-slate-500">
-                  Este usuário possui acesso de administrador.
-                </p>
-              </label>
-            )}
-
-            {/* BOTÃO */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary w-full"
-            >
-              {loading ? (
-                <Loader2
-                  className="animate-spin"
-                  size={18}
-                />
-              ) : (
+            <form onSubmit={submit} className="mt-6 space-y-5">
+              {modo === "telefone" ? (
                 <>
-                  {pedirSenha
-                    ? "Entrar"
-                    : "Continuar"}
+                  <label className="block">
+                    <span className="mb-1.5 block text-sm font-medium text-slate-900">
+                      Nome
+                    </span>
 
-                  <ArrowRight
-                    size={17}
-                  />
+                    <div className="relative">
+                      <UserRound
+                        size={18}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                      />
+
+                      <input
+                        type="text"
+                        value={nome}
+                        onChange={(e) => setNome(e.target.value)}
+                        placeholder="Digite seu nome"
+                        className="input w-full pl-11"
+                        required
+                      />
+                    </div>
+                  </label>
+
+                  <label className="block">
+                    <span className="mb-1.5 block text-sm font-medium text-slate-900">
+                      Telefone
+                    </span>
+
+                    <div className="relative">
+                      <Phone
+                        size={18}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                      />
+
+                      <input
+                        type="tel"
+                        inputMode="numeric"
+                        value={telefone}
+                        onChange={(e) =>
+                          setTelefone(e.target.value.replace(/\D/g, "").slice(0, 11))
+                        }
+                        placeholder="Digite seu telefone"
+                        className="input w-full pl-11"
+                        required
+                      />
+                    </div>
+                  </label>
                 </>
-              )}
-            </button>
-          </form>
+              ) : (
+                <label className="block">
+                  <span className="mb-1.5 block text-sm font-medium text-slate-900">
+                    E-mail
+                  </span>
 
-          {/* CADASTRO */}
-          <p className="mt-6 text-center text-sm text-slate-500">
-            Ainda não possui conta?{" "}
-            <Link
-              className="font-semibold text-slate-900 hover:underline"
-              to="/cadastro"
-            >
-              Criar conta
-            </Link>
-          </p>
+                  <div className="relative">
+                    <Mail
+                      size={18}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                    />
+
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="seu@email.com"
+                      className="input w-full pl-11"
+                      required
+                    />
+                  </div>
+
+                  <p className="mt-2 text-xs text-slate-500">
+                    O código de acesso será enviado para seu e-mail.
+                  </p>
+                </label>
+              )}
+
+              {pedirSenha && (
+                <label className="block">
+                  <span className="mb-1.5 block text-sm font-medium text-slate-900">
+                    Senha do administrador
+                  </span>
+
+                  <div className="relative">
+                    <LockKeyhole
+                      size={18}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                    />
+
+                    <input
+                      type={mostrarSenha ? "text" : "password"}
+                      value={senha}
+                      onChange={(e) => setSenha(e.target.value)}
+                      placeholder="Digite sua senha"
+                      className="input w-full pl-11 pr-11"
+                      autoFocus
+                      required
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => setMostrarSenha((atual) => !atual)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+                    >
+                      {mostrarSenha ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+
+                  <p className="mt-2 text-xs text-slate-500">
+                    Este usuário possui acesso de administrador.
+                  </p>
+                </label>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-primary w-full"
+              >
+                {loading ? (
+                  "Entrando..."
+                ) : (
+                  <>
+                    Entrar
+                    <ArrowRight size={18} />
+                  </>
+                )}
+              </button>
+            </form>
+
+            <p className="mt-7 text-center text-sm text-slate-500">
+              Ainda não possui conta?{" "}
+              <Link
+                to="/cadastro"
+                className="font-semibold text-slate-900 hover:underline"
+              >
+                Criar conta
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

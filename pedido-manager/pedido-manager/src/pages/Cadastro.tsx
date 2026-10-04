@@ -1,9 +1,10 @@
+
 import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   Loader2,
-  Phone,
+  Mail,
   UserRound,
 } from "lucide-react";
 import { Logo } from "../components/Logo";
@@ -15,19 +16,19 @@ export default function Cadastro() {
 
   const [form, setForm] = useState({
     nome: "",
-    telefone: "",
+    email: "",
   });
 
   const [error, setError] = useState("");
 
   function handleChange(
-    campo: "nome" | "telefone",
+    campo: "nome" | "email",
     valor: string
   ) {
-    setForm({
-      ...form,
+    setForm((anterior) => ({
+      ...anterior,
       [campo]: valor,
-    });
+    }));
   }
 
   async function submit(e: FormEvent) {
@@ -35,25 +36,24 @@ export default function Cadastro() {
     setError("");
 
     const nome = form.nome.trim();
+    const email = form.email.trim().toLowerCase();
 
     if (!nome) {
       setError("Digite seu nome.");
       return;
     }
 
-    const telefoneNumerico = Number(
-      form.telefone.replace(/\D/g, "")
-    );
-
-    if (!telefoneNumerico) {
-      setError("Digite um telefone válido.");
+    if (
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    ) {
+      setError("Digite um e-mail válido.");
       return;
     }
 
     try {
       const resposta = await signup({
         nome,
-        telefone: telefoneNumerico,
+        email,
         adm: false,
         ativo: true,
       });
@@ -68,10 +68,11 @@ export default function Cadastro() {
         );
       }
 
-      nav("/verificar-telefone", {
+      nav("/verificar-email", {
         state: {
           usuarioId,
-          telefone: telefoneNumerico,
+          email,
+          modo: "cadastro",
         },
       });
     } catch (err: any) {
@@ -93,11 +94,14 @@ export default function Cadastro() {
           </h1>
 
           <p className="mt-1 text-sm text-slate-500">
-            Informe seu nome e telefone para começar.
+            Informe seu nome e e-mail para começar.
           </p>
 
           {error && (
-            <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            <div
+              className="mt-5 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+              role="alert"
+            >
               {error}
             </div>
           )}
@@ -119,12 +123,10 @@ export default function Cadastro() {
 
                 <input
                   type="text"
+                  autoComplete="name"
                   value={form.nome}
                   onChange={(e) =>
-                    handleChange(
-                      "nome",
-                      e.target.value
-                    )
+                    handleChange("nome", e.target.value)
                   }
                   placeholder="Digite seu nome"
                   className="input w-full pl-11"
@@ -135,28 +137,24 @@ export default function Cadastro() {
 
             <label className="block">
               <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Telefone
+                E-mail
               </span>
 
               <div className="relative">
-                <Phone
+                <Mail
                   size={18}
                   className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                 />
 
                 <input
-                  type="tel"
-                  inputMode="numeric"
-                  value={form.telefone}
+                  type="email"
+                  autoComplete="email"
+                  inputMode="email"
+                  value={form.email}
                   onChange={(e) =>
-                    handleChange(
-                      "telefone",
-                      e.target.value
-                        .replace(/\D/g, "")
-                        .slice(0, 11)
-                    )
+                    handleChange("email", e.target.value)
                   }
-                  placeholder="Digite seu telefone"
+                  placeholder="Digite seu e-mail"
                   className="input w-full pl-11"
                   required
                 />

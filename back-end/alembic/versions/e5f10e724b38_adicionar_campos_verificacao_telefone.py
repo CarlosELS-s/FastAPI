@@ -22,7 +22,7 @@ def upgrade() -> None:
             "telefone_verificado",
             sa.Boolean(),
             nullable=True,
-            server_default=sa.text("0"),
+            server_default=sa.text("FALSE"),
         ),
     )
 

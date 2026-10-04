@@ -21,6 +21,13 @@ type CadastroResponse = {
   telefone_verificado?: boolean;
 };
 
+type LoginResponse = {
+  senha_obrigatoria?: boolean;
+  verificacao_necessaria?: boolean;
+  usuario_id?: number;
+  telefone?: number;
+};
+
 type AuthContextValue = {
   token: string | null;
   loading: boolean;
@@ -28,9 +35,7 @@ type AuthContextValue = {
 
   login: (
     data: Login
-  ) => Promise<{
-    senha_obrigatoria?: boolean;
-  }>;
+  ) => Promise<LoginResponse>;
 
   signup: (
     data: Usuario
@@ -106,26 +111,36 @@ export function AuthProvider({
 
   async function login(
     data: Login
-  ): Promise<{
-    senha_obrigatoria?: boolean;
-  }> {
+  ): Promise<LoginResponse> {
     setLoading(true);
 
     try {
       const resultado =
         await api.login(data);
 
-      const novoToken =
-        extractToken(resultado);
-
       if (
         resultado?.senha_obrigatoria &&
-        !novoToken
+        !resultado?.access_token
       ) {
         return {
           senha_obrigatoria: true,
         };
       }
+
+      if (
+        resultado?.verificacao_necessaria
+      ) {
+        return {
+          verificacao_necessaria: true,
+          usuario_id:
+            resultado.usuario_id,
+          telefone:
+            resultado.telefone,
+        };
+      }
+
+      const novoToken =
+        extractToken(resultado);
 
       if (!novoToken) {
         throw new Error(

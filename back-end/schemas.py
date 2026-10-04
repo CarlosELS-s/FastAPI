@@ -137,3 +137,8 @@ class ProdutoTamanhoEstoqueSchema(BaseModel):
 
     class Config:
         from_attributes = True
+class FuncaoUsuarioSchema(BaseModel):
+    funcao: str
+    admin: bool
+    class Config:
+        from_attributes = True
