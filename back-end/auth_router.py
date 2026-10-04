@@ -113,7 +113,7 @@ async def criar_conta(usuario_schema: UsuarioSchema, session: Session = Depends(
     session.commit()
     session.refresh(novo_usuario)
 
-    gerar_codigo_telefone(novo_usuario.id)
+    gerar_codigo_telefone(novo_usuario.id,  novo_usuario.telefone)
 
     return {
         "message": "Usuário criado com sucesso. Verifique o telefone com o código enviado no terminal.",
@@ -182,7 +182,10 @@ async def login(login_schema: loginSchema, session: Session = Depends(pegar_sess
         if not bcrypt_context.verify(login_schema.senha, usuario.senha):
             raise HTTPException(status_code=400, detail="Senha do administrador incorreta.")
 
-    gerar_codigo_telefone(usuario.id)
+    gerar_codigo_telefone(
+    usuario.id,
+    usuario.telefone
+)
 
     return {
         "verificacao_necessaria": True,
@@ -444,7 +447,10 @@ async def reenviar_codigo_telefone(usuario_id: int, session: Session = Depends(p
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuário não encontrado.")
 
-    gerar_codigo_telefone(usuario.id)
+    gerar_codigo_telefone(
+    usuario.id,
+    usuario.telefone
+)
 
     return {"message": "Novo código gerado."}
 
