@@ -11,6 +11,16 @@ import {
   Usuario,
 } from "../lib/api";
 
+type CadastroData = {
+  nome: string;
+  email: string;
+  adm?: boolean;
+  admin?: boolean;
+  ativo?: boolean;
+  telefone?: number;
+  senha?: string;
+};
+
 type CadastroResponse = {
   message?: string;
   id?: number;
@@ -19,6 +29,9 @@ type CadastroResponse = {
   telefone?: number;
   admin?: boolean;
   telefone_verificado?: boolean;
+  usuario?: {
+    id?: number;
+  };
 };
 
 type LoginResponse = {
@@ -26,6 +39,7 @@ type LoginResponse = {
   verificacao_necessaria?: boolean;
   usuario_id?: number;
   telefone?: number;
+  email?: string | null;
 };
 
 type AuthContextValue = {
@@ -38,7 +52,7 @@ type AuthContextValue = {
   ) => Promise<LoginResponse>;
 
   signup: (
-    data: Usuario
+    data: CadastroData
   ) => Promise<CadastroResponse>;
 
   logout: () => void;
@@ -98,16 +112,13 @@ export function AuthProvider({
 }) {
   const [token, setToken] =
     useState<string | null>(() =>
-      localStorage.getItem(
-        "pedido_token"
-      )
+      localStorage.getItem("pedido_token")
     );
 
   const [loading, setLoading] =
     useState(false);
 
-  const isAdmin =
-    verificarAdmin(token);
+  const isAdmin = verificarAdmin(token);
 
   async function login(
     data: Login
@@ -132,10 +143,9 @@ export function AuthProvider({
       ) {
         return {
           verificacao_necessaria: true,
-          usuario_id:
-            resultado.usuario_id,
-          telefone:
-            resultado.telefone,
+          usuario_id: resultado.usuario_id,
+          telefone: resultado.telefone,
+          email: resultado.email,
         };
       }
 
@@ -162,13 +172,15 @@ export function AuthProvider({
   }
 
   async function signup(
-    data: Usuario
+    data: CadastroData
   ): Promise<CadastroResponse> {
     setLoading(true);
 
     try {
       const resposta =
-        await api.criarConta(data);
+        await api.criarConta(
+          data as Usuario
+        );
 
       if (data.senha) {
         await login({
@@ -192,35 +204,31 @@ export function AuthProvider({
     setToken(null);
   }
 
-  const value =
-    useMemo(
-      () => ({
-        token,
-        loading,
-        isAdmin,
-        login,
-        signup,
-        logout,
-      }),
-      [
-        token,
-        loading,
-        isAdmin,
-      ]
-    );
+  const value = useMemo(
+    () => ({
+      token,
+      loading,
+      isAdmin,
+      login,
+      signup,
+      logout,
+    }),
+    [
+      token,
+      loading,
+      isAdmin,
+    ]
+  );
 
   return (
-    <AuthContext.Provider
-      value={value}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
 }
 
 export function useAuth() {
-  const contexto =
-    useContext(AuthContext);
+  const contexto = useContext(AuthContext);
 
   if (!contexto) {
     throw new Error(

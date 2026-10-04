@@ -53,15 +53,9 @@ export default function Pagamento() {
         setCarregandoPedido(true);
         setErro("");
 
-        const resposta = await api.visualizarPedido(pedidoId);
+        const dadosPedido = await api.visualizarPedido(pedidoId);
 
-        const dadosPedido =
-          resposta?.pedido &&
-          typeof resposta.pedido === "object"
-            ? resposta.pedido
-            : resposta;
-
-        setPedido(dadosPedido as Pedido);
+        setPedido(dadosPedido);
       } catch (error: any) {
         setErro(
           error?.message ||

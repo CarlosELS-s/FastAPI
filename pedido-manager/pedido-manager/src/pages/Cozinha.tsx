@@ -37,13 +37,7 @@ function Cozinha() {
       const pedidosComDetalhes = await Promise.all(
         pedidosFinalizados.map(async (pedido) => {
           try {
-            const resposta = await api.visualizarPedido(pedido.id);
-
-            const detalhes =
-              resposta?.pedido &&
-              typeof resposta.pedido === "object"
-                ? resposta.pedido
-                : resposta;
+            const detalhes = await api.visualizarPedido(pedido.id);
 
             return detalhes as PedidoComPagamento;
           } catch {

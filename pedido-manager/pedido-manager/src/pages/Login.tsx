@@ -1,10 +1,26 @@
 import { FormEvent, useState } from "react";
-import { ArrowRight, Eye, EyeOff, LockKeyhole, Mail, Phone, UserRound } from "lucide-react";
+import {
+  ArrowRight,
+  Eye,
+  EyeOff,
+  LockKeyhole,
+  Mail,
+  Phone,
+  UserRound,
+} from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Logo } from "../components/Logo";
 import { useAuth } from "../context/AuthContext";
 
 type ModoLogin = "telefone" | "email";
+
+type ResultadoLogin = {
+  senha_obrigatoria?: boolean;
+  verificacao_necessaria?: boolean;
+  usuario_id?: number;
+  email?: string | null;
+  telefone?: number;
+};
 
 export default function Login() {
   const { login, loading } = useAuth();
@@ -40,10 +56,10 @@ export default function Login() {
           return;
         }
 
-        const resultado = await login({
+        const resultado = (await login({
           email: emailLimpo,
-          senha: pedirSenha ? senha : undefined
-        });
+          senha: pedirSenha ? senha : undefined,
+        })) as ResultadoLogin;
 
         if (resultado?.senha_obrigatoria && !pedirSenha) {
           setPedirSenha(true);
@@ -55,8 +71,8 @@ export default function Login() {
             state: {
               usuarioId: resultado.usuario_id,
               email: resultado.email || emailLimpo,
-              modo: "login-email"
-            }
+              modo: "login-email",
+            },
           });
           return;
         }
@@ -73,11 +89,11 @@ export default function Login() {
           return;
         }
 
-        const resultado = await login({
+        const resultado = (await login({
           nome: nome.trim(),
           telefone: telefoneNumerico,
-          senha: pedirSenha ? senha : undefined
-        });
+          senha: pedirSenha ? senha : undefined,
+        })) as ResultadoLogin;
 
         if (resultado?.senha_obrigatoria && !pedirSenha) {
           setPedirSenha(true);
@@ -89,8 +105,8 @@ export default function Login() {
             state: {
               usuarioId: resultado.usuario_id,
               telefone: resultado.telefone || telefoneNumerico,
-              modo: "login"
-            }
+              modo: "login",
+            },
           });
           return;
         }
@@ -123,7 +139,8 @@ export default function Login() {
               </h2>
 
               <p className="mt-6 max-w-lg text-lg leading-8 text-slate-400">
-                Acompanhe pedidos, itens e status com uma interface rápida e objetiva.
+                Acompanhe pedidos, itens e status com uma interface rápida e
+                objetiva.
               </p>
             </div>
 
@@ -138,7 +155,9 @@ export default function Login() {
             </div>
 
             <div>
-              <p className="text-sm font-medium text-slate-500">Bem-vindo</p>
+              <p className="text-sm font-medium text-slate-500">
+                Bem-vindo
+              </p>
 
               <h1 className="mt-1 text-3xl font-bold text-slate-900">
                 Entrar
@@ -157,7 +176,7 @@ export default function Login() {
                   "flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition",
                   modo === "telefone"
                     ? "bg-white text-slate-900 shadow-sm"
-                    : "text-slate-500 hover:text-slate-900"
+                    : "text-slate-500 hover:text-slate-900",
                 ].join(" ")}
               >
                 <Phone size={17} />
@@ -171,7 +190,7 @@ export default function Login() {
                   "flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition",
                   modo === "email"
                     ? "bg-white text-slate-900 shadow-sm"
-                    : "text-slate-500 hover:text-slate-900"
+                    : "text-slate-500 hover:text-slate-900",
                 ].join(" ")}
               >
                 <Mail size={17} />
@@ -226,7 +245,9 @@ export default function Login() {
                         inputMode="numeric"
                         value={telefone}
                         onChange={(e) =>
-                          setTelefone(e.target.value.replace(/\D/g, "").slice(0, 11))
+                          setTelefone(
+                            e.target.value.replace(/\D/g, "").slice(0, 11)
+                          )
                         }
                         placeholder="Digite seu telefone"
                         className="input w-full pl-11"
@@ -290,7 +311,11 @@ export default function Login() {
                       onClick={() => setMostrarSenha((atual) => !atual)}
                       className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
                     >
-                      {mostrarSenha ? <EyeOff size={18} /> : <Eye size={18} />}
+                      {mostrarSenha ? (
+                        <EyeOff size={18} />
+                      ) : (
+                        <Eye size={18} />
+                      )}
                     </button>
                   </div>
 

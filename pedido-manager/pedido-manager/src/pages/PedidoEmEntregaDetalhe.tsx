@@ -35,15 +35,9 @@ export default function PedidoEmEntregaDetalhe() {
       setCarregando(true);
       setErro("");
 
-      const resposta = await api.visualizarPedido(pedidoId);
+      const dados = await api.visualizarPedido(pedidoId);
 
-      const dados =
-        resposta?.pedido &&
-        typeof resposta.pedido === "object"
-          ? resposta.pedido
-          : resposta;
-
-      setPedido(dados as Pedido);
+      setPedido(dados);
     } catch (error) {
       setErro(
         error instanceof Error

@@ -1,4 +1,3 @@
-
 import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -9,6 +8,13 @@ import {
 } from "lucide-react";
 import { Logo } from "../components/Logo";
 import { useAuth } from "../context/AuthContext";
+
+type ResultadoCadastro = {
+  id?: number;
+  usuario?: {
+    id?: number;
+  };
+};
 
 export default function Cadastro() {
   const { signup, loading } = useAuth();
@@ -43,20 +49,18 @@ export default function Cadastro() {
       return;
     }
 
-    if (
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-    ) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setError("Digite um e-mail válido.");
       return;
     }
 
     try {
-      const resposta = await signup({
+      const resposta = (await signup({
         nome,
         email,
         adm: false,
         ativo: true,
-      });
+      })) as ResultadoCadastro;
 
       const usuarioId =
         resposta?.id ??
