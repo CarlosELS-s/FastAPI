@@ -11,9 +11,6 @@ import { useAuth } from "../context/AuthContext";
 
 type ResultadoCadastro = {
   id?: number;
-  usuario?: {
-    id?: number;
-  };
 };
 
 export default function Cadastro() {
@@ -62,9 +59,7 @@ export default function Cadastro() {
         ativo: true,
       })) as ResultadoCadastro;
 
-      const usuarioId =
-        resposta?.id ??
-        resposta?.usuario?.id;
+      const usuarioId = resposta?.id;
 
       if (!usuarioId) {
         throw new Error(
@@ -130,7 +125,10 @@ export default function Cadastro() {
                   autoComplete="name"
                   value={form.nome}
                   onChange={(e) =>
-                    handleChange("nome", e.target.value)
+                    handleChange(
+                      "nome",
+                      e.target.value
+                    )
                   }
                   placeholder="Digite seu nome"
                   className="input w-full pl-11"
@@ -156,7 +154,10 @@ export default function Cadastro() {
                   inputMode="email"
                   value={form.email}
                   onChange={(e) =>
-                    handleChange("email", e.target.value)
+                    handleChange(
+                      "email",
+                      e.target.value
+                    )
                   }
                   placeholder="Digite seu e-mail"
                   className="input w-full pl-11"
