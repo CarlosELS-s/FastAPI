@@ -424,10 +424,10 @@ async def verificar_telefone(usuario_id: int, codigo_schema: CodigoTelefoneSchem
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuário não encontrado.")
 
-    valido, mensagem = validar_codigo_telefone(usuario_id, codigo_schema.codigo)
+    #valido, mensagem = validar_codigo_telefone(usuario_id, codigo_schema.codigo)
 
-    if not valido:
-        raise HTTPException(status_code=400, detail=mensagem)
+    #if not valido:
+     #   raise HTTPException(status_code=400, detail=mensagem)
 
     usuario.telefone_verificado = True
     session.commit()
