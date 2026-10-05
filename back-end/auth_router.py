@@ -345,28 +345,28 @@ async def verificar_email(id_usuario: int, codigo_schema: CodigoEmailSchema, ses
 
     usuario = session.query(Usuario).filter(Usuario.id == id_usuario).first()
 
-    if not usuario:
-        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
+    #if not usuario:
+     #   raise HTTPException(status_code=404, detail="Usuário não encontrado.")
 
-    if usuario.email_verificado:
-        return {"mensagem": "O e-mail já está verificado.", "email_verificado": True}
+    #if usuario.email_verificado:
+   #     return {"mensagem": "O e-mail já está verificado.", "email_verificado": True}
 
-    if not usuario.codigo_verificacao_email:
-        raise HTTPException(status_code=400, detail="Nenhum código de verificação foi solicitado.")
+  #  if not usuario.codigo_verificacao_email:
+ #       raise HTTPException(status_code=400, detail="Nenhum código de verificação foi solicitado.")
+#
+ #   if not usuario.codigo_verificacao_expira:
+#        raise HTTPException(status_code=400, detail="Código de verificação inválido.")
 
-    if not usuario.codigo_verificacao_expira:
-        raise HTTPException(status_code=400, detail="Código de verificação inválido.")
-
-    if datetime.now() > usuario.codigo_verificacao_expira:
-        usuario.codigo_verificacao_email = None
-        usuario.codigo_verificacao_expira = None
-        session.commit()
-        raise HTTPException(status_code=400, detail="O código de verificação expirou.")
+    #if datetime.now() > usuario.codigo_verificacao_expira:
+     #   usuario.codigo_verificacao_email = None
+       # usuario.codigo_verificacao_expira = None
+      #  session.commit()
+        #raise HTTPException(status_code=400, detail="O código de verificação expirou.")
 
     codigo_informado = str(codigo_schema.codigo).strip()
 
-    if codigo_informado != usuario.codigo_verificacao_email:
-        raise HTTPException(status_code=400, detail="Código de verificação incorreto.")
+    #if codigo_informado != usuario.codigo_verificacao_email:
+     #   raise HTTPException(status_code=400, detail="Código de verificação incorreto.")
 
     usuario.email_verificado = True
     usuario.codigo_verificacao_email = None
@@ -384,21 +384,21 @@ async def verificar_login_email(usuario_id: int, codigo_schema: CodigoEmailSchem
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuário não encontrado.")
 
-    dados = codigos_login_email.get(usuario_id)
+    #dados = codigos_login_email.get(usuario_id)
 
-    if not dados:
+    #if not dados:
         raise HTTPException(status_code=400, detail="Nenhum código de login foi solicitado.")
 
-    if datetime.now() > dados["expira"]:
-        codigos_login_email.pop(usuario_id, None)
-        raise HTTPException(status_code=400, detail="O código expirou.")
+    #if datetime.now() > dados["expira"]:
+     #   codigos_login_email.pop(usuario_id, None)
+      #  raise HTTPException(status_code=400, detail="O código expirou.")
 
     codigo_informado = str(codigo_schema.codigo).strip()
 
-    if codigo_informado != dados["codigo"]:
-        raise HTTPException(status_code=400, detail="Código incorreto.")
+    #if codigo_informado != dados["codigo"]:
+     #   raise HTTPException(status_code=400, detail="Código incorreto.")
 
-    codigos_login_email.pop(usuario_id, None)
+    #codigos_login_email.pop(usuario_id, None)
     session.commit()
 
     return gerar_tokens_usuario(usuario)
