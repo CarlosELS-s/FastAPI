@@ -17,7 +17,7 @@ type CadastroData = {
   adm?: boolean;
   admin?: boolean;
   ativo?: boolean;
-  telefone?: number;
+  telefone?: string;
   senha?: string;
 };
 
@@ -26,7 +26,7 @@ type CadastroResponse = {
   id?: number;
   nome?: string;
   email?: string | null;
-  telefone?: number;
+  telefone?: string;
   admin?: boolean;
   telefone_verificado?: boolean;
   usuario?: {
@@ -38,7 +38,7 @@ type LoginResponse = {
   senha_obrigatoria?: boolean;
   verificacao_necessaria?: boolean;
   usuario_id?: number;
-  telefone?: number;
+  telefone?: string;
   email?: string | null;
 };
 

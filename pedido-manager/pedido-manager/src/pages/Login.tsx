@@ -19,7 +19,7 @@ type ResultadoLogin = {
   verificacao_necessaria?: boolean;
   usuario_id?: number;
   email?: string | null;
-  telefone?: number;
+  telefone?: string;
 };
 
 export default function Login() {
@@ -77,21 +77,22 @@ export default function Login() {
           return;
         }
       } else {
-        const telefoneNumerico = Number(telefone.replace(/\D/g, ""));
+        // Telefone deve ser enviado como STRING
+        const telefoneLimpo = telefone.replace(/\D/g, "");
 
         if (!nome.trim()) {
           setError("Digite seu nome.");
           return;
         }
 
-        if (!telefoneNumerico) {
+        if (!telefoneLimpo) {
           setError("Digite seu telefone.");
           return;
         }
 
         const resultado = (await login({
           nome: nome.trim(),
-          telefone: telefoneNumerico,
+          telefone: telefoneLimpo,
           senha: pedirSenha ? senha : undefined,
         })) as ResultadoLogin;
 
@@ -104,7 +105,7 @@ export default function Login() {
           nav("/verificar-telefone", {
             state: {
               usuarioId: resultado.usuario_id,
-              telefone: resultado.telefone || telefoneNumerico,
+              telefone: resultado.telefone || telefoneLimpo,
               modo: "login",
             },
           });
