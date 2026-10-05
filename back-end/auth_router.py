@@ -182,15 +182,10 @@ async def login(login_schema: loginSchema, session: Session = Depends(pegar_sess
         if not bcrypt_context.verify(login_schema.senha, usuario.senha):
             raise HTTPException(status_code=400, detail="Senha do administrador incorreta.")
 
-    gerar_codigo_telefone(
-    usuario.id,
-    usuario.telefone
-)
-
     return {
         "verificacao_necessaria": True,
         "tipo_verificacao": "telefone",
-        "usuario_id": usuario.id,
+        "usuario_id": usuario.id, 
         "telefone": usuario.telefone
     }
 
