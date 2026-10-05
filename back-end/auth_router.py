@@ -17,11 +17,11 @@ codigos_login_email = {}
 
 def gerar_codigo_email_login(usuario):
     codigo = str(random.randint(100000, 999999))
-    codigos_login_email[usuario.id] = {"codigo": codigo, "expira": datetime.now() + timedelta(minutes=10)}
-    try:
-        Enviar_Email(email_destino=usuario.email, codigo=int(codigo))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Não foi possível enviar o código por e-mail: {str(e)}")
+   # try:
+   #     Enviar_Email(email_destino=usuario.email, codigo=int(codigo))
+#except Exception as e:
+  #      raise HTTPException(status_code=500, detail=f"Não foi possível enviar o código por e-mail: {str(e)}")
+    print(codigo)
     return codigo
 
 def gerar_codigo_telefone(usuario_id: int, telefone: str):
@@ -185,7 +185,7 @@ async def login(login_schema: loginSchema, session: Session = Depends(pegar_sess
     return {
         "verificacao_necessaria": True,
         "tipo_verificacao": "telefone",
-        "usuario_id": usuario.id, 
+        "usuario_id": usuario.id,
         "telefone": usuario.telefone
     }
 
