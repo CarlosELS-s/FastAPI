@@ -1,40 +1,35 @@
 import os
-import smtplib
-from email.message import EmailMessage
+import requests
+
+from twilio.rest import Client
 
 
 class Enviar_Email:
 
-    def __init__(
-        self,
-        email_destino: str,
-        codigo: int
-    ):
+    def __init__(self, email_destino: str, codigo: int):
         self.remetente = os.getenv("EMAIL_REMETENTE")
-        self.__senha = os.getenv("EMAIL_SENHA")
-        destinatario = email_destino
-                
-        print("EMAIL:", os.getenv("EMAIL_REMETENTE"))
-        print("SENHA EXISTE:", bool(os.getenv("EMAIL_SENHA")))
-        print("TAMANHO DA SENHA:", len(os.getenv("EMAIL_SENHA") or ""))
+        self.resend_api_key = os.getenv("RESEND_API_KEY")
+
         if not self.remetente:
             raise Exception(
-                "EMAIL_REMETENTE não foi configurado no .env"
+                "EMAIL_REMETENTE não foi configurado no Render."
             )
 
-        if not self.__senha:
+        if not self.resend_api_key:
             raise Exception(
-                "EMAIL_SENHA não foi configurado no .env"
+                "RESEND_API_KEY não foi configurada no Render."
             )
 
-        mensagem = EmailMessage()
+        if not email_destino:
+            raise Exception(
+                "O usuário não possui e-mail cadastrado."
+            )
 
-        mensagem["Subject"] = "Código de verificação"
-        mensagem["From"] = self.remetente
-        mensagem["To"] = destinatario
-
-        mensagem.set_content(
-            f"""
+        mensagem = {
+            "from": self.remetente,
+            "to": [email_destino],
+            "subject": "Código de verificação - PedidoManager",
+            "text": f"""
 Olá!
 
 Seu código de verificação é:
@@ -43,32 +38,37 @@ Seu código de verificação é:
 
 Esse código expira em 10 minutos.
 
-PedidoManagerS
-"""
-        )
+PedidoManager
+""",
+        }
 
-        with smtplib.SMTP(
-            "smtp.gmail.com",
-            587
-        ) as servidor:
-
-            servidor.starttls()
-
-            servidor.login(
-                self.remetente,
-                self.__senha
+        try:
+            resposta = requests.post(
+                "https://api.resend.com/emails",
+                headers={
+                    "Authorization": f"Bearer {self.resend_api_key}",
+                    "Content-Type": "application/json",
+                },
+                json=mensagem,
+                timeout=15,
             )
 
-            servidor.send_message(
-                mensagem
+        except requests.RequestException as e:
+            raise Exception(
+                f"Não foi possível conectar ao serviço de e-mail: {e}"
             )
 
-        print("E-mail enviado!")
-import os
+        if not resposta.ok:
+            try:
+                erro = resposta.json()
+            except Exception:
+                erro = resposta.text
 
-import os
+            raise Exception(
+                f"Erro ao enviar e-mail: {erro}"
+            )
 
-from twilio.rest import Client
+        print(f"E-mail enviado com sucesso para {email_destino}.")
 
 
 class Enviar_SMS:
@@ -80,17 +80,17 @@ class Enviar_SMS:
 
         if not self.account_sid:
             raise Exception(
-                "TWILIO_ACCOUNT_SID não foi configurado no .env"
+                "TWILIO_ACCOUNT_SID não foi configurado no Render."
             )
 
         if not self.auth_token:
             raise Exception(
-                "TWILIO_AUTH_TOKEN não foi configurado no .env"
+                "TWILIO_AUTH_TOKEN não foi configurado no Render."
             )
 
         if not self.numero_twilio:
             raise Exception(
-                "TWILIO_PHONE_NUMBER não foi configurado no .env"
+                "TWILIO_PHONE_NUMBER não foi configurado no Render."
             )
 
         if not telefone_destino:
@@ -116,30 +116,26 @@ class Enviar_SMS:
             to=telefone
         )
 
-        print(f"SMS enviado com sucesso. SID: {message.sid}")
+        print(
+            f"SMS enviado com sucesso. SID: {message.sid}"
+        )
 
     @staticmethod
     def formatar_telefone(telefone: str) -> str:
         telefone = str(telefone).strip()
 
-        # Remove espaços, parênteses, hífens etc.
         telefone = "".join(
             caractere
             for caractere in telefone
             if caractere.isdigit() or caractere == "+"
         )
 
-        # Se já estiver no formato internacional:
-        # +5562999999999
         if telefone.startswith("+"):
             return telefone
 
-        # Se vier como 5562999999999
         if telefone.startswith("55") and len(telefone) in (12, 13):
             return f"+{telefone}"
 
-        # Número brasileiro sem código do país:
-        # 62999999999
         if len(telefone) in (10, 11):
             return f"+55{telefone}"
 
