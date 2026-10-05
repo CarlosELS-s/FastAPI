@@ -15,7 +15,7 @@ class CodigoTelefoneSchema(BaseModel):
     
 class loginSchema(BaseModel):
     nome: Optional[str] = None
-    telefone: Optional[int] = None
+    telefone: Optional[str] = None
     email: Optional[str] = None
     senha: Optional[str] = None
 
