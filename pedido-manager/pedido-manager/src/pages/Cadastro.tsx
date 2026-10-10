@@ -1,16 +1,23 @@
 import { FormEvent, useState } from "react";
+
 import { Link, useNavigate } from "react-router-dom";
+
 import {
   ArrowRight,
   Loader2,
   Mail,
+  Phone,
   UserRound,
 } from "lucide-react";
+
 import { Logo } from "../components/Logo";
 import { useAuth } from "../context/AuthContext";
 
 type ResultadoCadastro = {
   id?: number;
+  usuario?: {
+    id?: number;
+  };
 };
 
 export default function Cadastro() {
@@ -19,13 +26,14 @@ export default function Cadastro() {
 
   const [form, setForm] = useState({
     nome: "",
+    telefone: "",
     email: "",
   });
 
   const [error, setError] = useState("");
 
   function handleChange(
-    campo: "nome" | "email",
+    campo: "nome" | "telefone" | "email",
     valor: string
   ) {
     setForm((anterior) => ({
@@ -39,10 +47,23 @@ export default function Cadastro() {
     setError("");
 
     const nome = form.nome.trim();
+
+    const telefone = form.telefone.replace(/\D/g, "");
+
     const email = form.email.trim().toLowerCase();
 
     if (!nome) {
       setError("Digite seu nome.");
+      return;
+    }
+
+    if (!telefone) {
+      setError("Digite seu telefone.");
+      return;
+    }
+
+    if (telefone.length < 10) {
+      setError("Digite um telefone válido.");
       return;
     }
 
@@ -54,12 +75,15 @@ export default function Cadastro() {
     try {
       const resposta = (await signup({
         nome,
+        telefone,
         email,
         adm: false,
         ativo: true,
       })) as ResultadoCadastro;
 
-      const usuarioId = resposta?.id;
+      const usuarioId =
+        resposta?.id ??
+        resposta?.usuario?.id;
 
       if (!usuarioId) {
         throw new Error(
@@ -71,6 +95,7 @@ export default function Cadastro() {
         state: {
           usuarioId,
           email,
+          telefone,
           modo: "cadastro",
         },
       });
@@ -93,7 +118,7 @@ export default function Cadastro() {
           </h1>
 
           <p className="mt-1 text-sm text-slate-500">
-            Informe seu nome e e-mail para começar.
+            Informe seus dados para começar.
           </p>
 
           {error && (
@@ -109,6 +134,7 @@ export default function Cadastro() {
             onSubmit={submit}
             className="mt-6 space-y-4"
           >
+            {/* NOME */}
             <label className="block">
               <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Nome
@@ -137,6 +163,37 @@ export default function Cadastro() {
               </div>
             </label>
 
+            {/* TELEFONE */}
+            <label className="block">
+              <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Telefone
+              </span>
+
+              <div className="relative">
+                <Phone
+                  size={18}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                />
+
+                <input
+                  type="tel"
+                  autoComplete="tel"
+                  inputMode="tel"
+                  value={form.telefone}
+                  onChange={(e) =>
+                    handleChange(
+                      "telefone",
+                      e.target.value
+                    )
+                  }
+                  placeholder="Digite seu telefone"
+                  className="input w-full pl-11"
+                  required
+                />
+              </div>
+            </label>
+
+            {/* E-MAIL */}
             <label className="block">
               <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
                 E-mail
@@ -166,6 +223,7 @@ export default function Cadastro() {
               </div>
             </label>
 
+            {/* BOTÃO */}
             <button
               type="submit"
               disabled={loading}
@@ -177,11 +235,13 @@ export default function Cadastro() {
                     size={18}
                     className="animate-spin"
                   />
+
                   Criando conta...
                 </>
               ) : (
                 <>
                   Criar conta
+
                   <ArrowRight size={18} />
                 </>
               )}
@@ -190,6 +250,7 @@ export default function Cadastro() {
 
           <p className="mt-6 text-center text-sm text-slate-500">
             Já possui conta?{" "}
+
             <Link
               className="font-semibold text-slate-900 hover:underline"
               to="/login"
