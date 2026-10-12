@@ -25,7 +25,8 @@ bcrypt_context = CryptContext(
 
 frontend_url = os.getenv(
     "FRONTEND_URL",
-    "https://fast-api-rho-six.vercel.app"
+    'https://fast-api-rho-six.vercel.app',
+    
 )
 
 origins = [
@@ -46,14 +47,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from auth_router import auth_router
-from order_router import order_router
-from produto_router import produto_router
+from routers.auth_router import auth_router
+from routers.order_router import order_router
+from routers.produto_router import produto_router
 
 app.include_router(auth_router)
 app.include_router(order_router)
 app.include_router(produto_router)
 
 # para roda o codigo em terminal digite: uvicorn main:app --host 0.0.0.0 --port 8000 --reload  e em  outro terminal  npm.cmd run dev   para o front-end
-# bibliotecas necessarias:pip install fastapi uicorn sqlalchemy passlib[bcrypt] python-jose[cryptography] python-dotenv python-multipart
 # http://127.0.0.1:8000/docs
